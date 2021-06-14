@@ -2,6 +2,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -22,7 +23,7 @@ public class Game {
         }
         return null;
     }
-    public void firstNight(HashMap<String , Socket> all , HashMap<String , Socket> mafias , Socket socket){
+    public void firstNight(HashMap<String , Socket> all , HashMap<String , Socket> mafia , Socket socket){
 
     }
     public void welcome(){
@@ -30,6 +31,7 @@ public class Game {
 
 
     }
+
     public void beReady(Socket socket , Player player){
         TimerTask timerTask = new TimerTask() {
             @Override
@@ -46,13 +48,22 @@ public class Game {
             Timer timer = new Timer();
             timer.schedule(timerTask , 30 * 1000);
             DataInputStream in = new DataInputStream(socket.getInputStream());
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
             String str = in.readUTF();
             System.out.println(player.getName() + " is ready");
+            out.writeUTF("Successful");
             timer.cancel();
             timerTask.cancel();
         } catch (IOException e) {
             System.out.println("Error! " + player.getName() + " left the game!");
             return;
+        }
+    }
+    public void setMafia(ArrayList <Player> all , ArrayList <Player> mafia){
+        for (int i = 0 ; i < all.size() ; i++){
+            if (all.get(i).getType().equals("Mafia")){
+                mafia.add(all.get(i));
+            }
         }
     }
 }

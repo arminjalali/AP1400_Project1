@@ -1,3 +1,4 @@
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -7,6 +8,7 @@ public class Main {
 
     public static void main(String[] args) {
         DataOutputStream out = null;
+        DataInputStream in = null;
         Scanner get = new Scanner(System.in);
         Socket socket = null;
         System.out.println("Enter your name");
@@ -16,10 +18,12 @@ public class Main {
         try {
             socket = new Socket("localhost", 6186);
             out = new DataOutputStream(socket.getOutputStream());
+            in = new DataInputStream(socket.getInputStream());
             String info = dr.getName() + "/" + dr.getType() + "/" + dr.getSubType();
             out.writeUTF(info);
             System.out.println("Enter a key to start");
             out.writeUTF(get.nextLine());
+            System.out.println(in.readUTF());
         }
         catch (IOException e){
             System.out.println("Error on connection to the server!");

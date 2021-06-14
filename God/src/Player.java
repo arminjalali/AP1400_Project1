@@ -22,14 +22,11 @@ public class Player {
         return name;
     }
 
-    @Override
-    public String toString() {
-        return "Player{" +
-                "name='" + name + '\'' +
-                ", alive=" + alive +
-                ", type='" + type + '\'' +
-                ", subType='" + subType + '\'' +
-                ", socket=" + socket +
-                '}';
+    public String getSubType() {
+        return subType;
+    }
+
+    public String getType() {
+        return type;
     }
 }

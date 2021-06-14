@@ -15,22 +15,23 @@ public class GlobalChat {
     }
 
     public void run() {
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                System.out.println("Time is up!");
-                try {
-                    out.writeUTF("End");
-                } catch (IOException e) {
-                    System.out.println("Error on write");
-                }
-                flag = 1;
-
-            }
-        };
         try {
             for(int i = 0 ; i < all.size() ; i++){
+                TimerTask timerTask = new TimerTask() {
+                    @Override
+                    public void run() {
+                        System.out.println("Time is up!");
+                        try {
+                            out.writeUTF("End");
+                        } catch (IOException e) {
+                            System.out.println("Error on write");
+                        }
+                        flag = 1;
+
+                    }
+                };
                 out = new DataOutputStream(all.get(i).getSocket().getOutputStream());
+                out.writeUTF("30 second for talk and enter '0' to end");
                 System.out.println(all.get(i).getName() + " it's your turn to talk");
                 Timer timer = new Timer();
                 in = new DataInputStream(all.get(i).getSocket().getInputStream());
@@ -47,7 +48,7 @@ public class GlobalChat {
                         break;
                     }
                     if (str.equals("0")){
-                        System.out.println("End of " + all.get(i).getName() + " speech");
+                        System.out.println("End of " + all.get(i).getName() + "'s speech");
                         break;
                     }
                     System.out.println(all.get(i).getName() + ": " + str);

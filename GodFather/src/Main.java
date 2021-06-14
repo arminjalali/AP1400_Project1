@@ -8,34 +8,30 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+        DataInputStream in;
+        DataOutputStream out;
+        Scanner get = new Scanner(System.in);
         Socket socket = null;
-        DataInputStream in = null;
-        DataOutputStream out = null;
+        System.out.println("Enter your name");
+        String name = get.nextLine();
+        GodFather godFather = new GodFather(name);
+        System.out.println("Hi " + name + "\nRemember that you are God father in this game\nLead the Mafia's group");
         try {
-            socket = new Socket("localhost", 6185);
-            in = new DataInputStream(socket.getInputStream());
+            socket = new Socket("localhost", 6186);
             out = new DataOutputStream(socket.getOutputStream());
-            Scanner get = new Scanner(System.in);
-            String text;
-            while (true) {
-                text = get.nextLine();
-                out.writeUTF(text);
-                if (text.equals("over")){
-                    break;
-                }
-            }
-            String text1;
-            while (!(text1 = get.nextLine()).equals("O")) {
-                System.out.println("See it?");
-                out.writeUTF(text1);
-                System.out.println(in.readUTF());
-            }
-            socket.close();
-            in.close();
-            out.close();
+            in = new DataInputStream(socket.getInputStream());
+            String info = godFather.getName() + "/" + godFather.getType() + "/" + godFather.getSubType();
+            out.writeUTF(info);
+            System.out.println("Enter a key to start");
+            out.writeUTF(get.nextLine());
+            System.out.println(in.readUTF());
+
         }
         catch (IOException e){
-            e.printStackTrace();
+            System.out.println("Error on connection to the server!");
+            System.exit(1);
         }
+        godFather.chat(socket);
+        while (true){}
     }
 }

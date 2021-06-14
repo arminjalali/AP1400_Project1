@@ -4,29 +4,16 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Dr {
+public class GodFather {
     private String name;
     private boolean alive;
     private String type;
     private String subType;
-
-    public Dr(String name) {
+    public GodFather(String name){
         this.name = name;
         alive = true;
-        type = "Citizen";
-        subType = "Dr";
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getSubType() {
-        return subType;
+        type = "Mafia";
+        subType = "GodFather";
     }
 
     public void chat(Socket socket) {
@@ -51,5 +38,16 @@ public class Dr {
             System.out.println("Error on connection!");
             System.exit(1);
         }
+    }
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getSubType() {
+        return subType;
     }
 }
