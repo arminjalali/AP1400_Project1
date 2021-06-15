@@ -34,6 +34,14 @@ public class Main {
         }
         godFather.chat(socket);
         godFather.introduce();
-        while (true){}
+        while (true){
+            if (!godFather.getAlive()){
+                System.out.println("You died!!!");
+                System.exit(1);
+            }
+            godFather.chat(socket);
+            godFather.vote();
+
+        }
     }
 }

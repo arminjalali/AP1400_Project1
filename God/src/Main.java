@@ -4,16 +4,17 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
 
     public static void main(String[] args) {
         Scanner get = new Scanner(System.in);
-        Game game = new Game();
         ServerSocket server = null;
         ArrayList <Player> all = new ArrayList<>();
         ArrayList <Player> mafia = new ArrayList<>();
+        Game game = new Game(all , mafia);
         try {
             server = new ServerSocket(6186);
             System.out.println("Server started...");
@@ -24,22 +25,26 @@ public class Main {
         }
         int counter = 0;
             try {
-                while (counter != 2) {
+                while (counter != 10) {
                     Socket socket = server.accept();
                     all.add(game.initial(socket));
-                    game.beReady(socket , all.get(counter));
-                    counter++;
+                    game.beReady(socket);
+                    counter ++;
                 }
                 int day = 0;
-                game.setMafia(all,mafia);
+                game.setMafia();
                 game.welcome();
-                new GlobalChat(all).run();
-                new MafiaChat(mafia).introduceMafia();
+                game.globalChat(all);
+                game.introduceMafia();
+                game.introduceCitizens();
                 while (true){
                     day++;
                     System.out.println("Day number: " + day);
-                    TimeUnit.SECONDS.sleep(2);
-                    new GlobalChat(all);
+                    TimeUnit.SECONDS.sleep(4);
+                    game.globalChat(all);
+                    TimeUnit.SECONDS.sleep(4);
+                    game.globalVote(all);
+
 
                 }
 

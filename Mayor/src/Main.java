@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -31,12 +32,15 @@ public class Main {
             System.exit(1);
         }
         mayor.chat(socket);
+        mayor.introduce();
         while (true){
             if (!mayor.getAlive()){
-                System.out.println("You are died!!!");
+                System.out.println("You died!!!");
                 System.exit(1);
             }
             mayor.chat(socket);
+            mayor.vote();
+
         }
     }
 }

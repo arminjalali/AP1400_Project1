@@ -33,6 +33,14 @@ public class Main {
         }
         mafia.chat(socket);
         mafia.introduce();
-        while (true){}
+        while (true){
+            if (!mafia.getAlive()){
+                System.out.println("You died!!!");
+                System.exit(1);
+            }
+            mafia.chat(socket);
+            mafia.vote();
+
+        }
     }
 }

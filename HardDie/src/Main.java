@@ -31,12 +31,15 @@ public class Main {
             System.exit(1);
         }
         hardDie.chat(socket);
+        hardDie.introduce();
         while (true){
             if (!hardDie.getAlive()){
-                System.out.println("You are died!!!");
+                System.out.println("You died!!!");
                 System.exit(1);
             }
             hardDie.chat(socket);
+            hardDie.vote();
+
         }
     }
 }

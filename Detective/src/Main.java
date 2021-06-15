@@ -30,11 +30,14 @@ public class Main {
             System.exit(1);
         }
         detective.chat(socket);
-        while (true) {
-            if (!detective.getAlive()) {
-                System.out.println("You are died!!!");
+        detective.introduce();
+        while (true){
+            if (!detective.getAlive()){
+                System.out.println("You died!!!");
                 System.exit(1);
             }
+            detective.chat(socket);
+            detective.vote();
 
         }
     }

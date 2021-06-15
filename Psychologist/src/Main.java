@@ -31,12 +31,16 @@ public class Main {
             System.exit(1);
         }
         psychologist.chat(socket);
+        psychologist.introduce();
         while (true){
             if (!psychologist.getAlive()){
-                System.out.println("You are died!!!");
+                System.out.println("You died!!!");
                 System.exit(1);
             }
             psychologist.chat(socket);
+            psychologist.vote();
+
+        }
         }
     }
 }

@@ -34,6 +34,14 @@ public class Main {
         }
         drLecter.chat(socket);
         drLecter.introduce();
-        while (true){}
+        while (true){
+            if (!drLecter.getAlive()){
+                System.out.println("You died!!!");
+                System.exit(1);
+            }
+            drLecter.chat(socket);
+            drLecter.vote();
+
+        }
     }
 }
