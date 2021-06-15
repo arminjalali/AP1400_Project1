@@ -18,6 +18,7 @@ public class Main {
         System.out.println("Hi " + name + "\nRemember that you are Dr Lecter in this game\nTry to save mafias!");
         try {
             socket = new Socket("localhost", 6186);
+            drLecter.setSocket(socket);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
             String info = drLecter.getName() + "/" + drLecter.getType() + "/" + drLecter.getSubType();
@@ -32,6 +33,7 @@ public class Main {
             System.exit(1);
         }
         drLecter.chat(socket);
+        drLecter.introduce();
         while (true){}
     }
 }

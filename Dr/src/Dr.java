@@ -9,12 +9,20 @@ public class Dr {
     private boolean alive;
     private String type;
     private String subType;
+    private Socket socket;
 
     public Dr(String name) {
         this.name = name;
         alive = true;
         type = "Citizen";
         subType = "Dr";
+    }
+
+    public boolean getAlive(){
+        return alive;
+    }
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 
     public String getName() {
@@ -28,6 +36,7 @@ public class Dr {
     public String getSubType() {
         return subType;
     }
+
 
     public void chat(Socket socket) {
         try {
@@ -52,4 +61,5 @@ public class Dr {
             System.exit(1);
         }
     }
+
 }

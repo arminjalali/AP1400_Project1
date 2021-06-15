@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class GlobalChat {
     private DataOutputStream out;
@@ -55,11 +56,14 @@ public class GlobalChat {
                 }
                 timer.cancel();
                 timerTask.cancel();
+                TimeUnit.SECONDS.sleep(2);
             }
         }
         catch (IOException e){
             System.out.println("Error on connection!");
             System.exit(1);
+        } catch (InterruptedException e) {
+            System.out.println("Error on sleep! but go on...");
         }
     }
 }

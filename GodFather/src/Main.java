@@ -15,9 +15,10 @@ public class Main {
         System.out.println("Enter your name");
         String name = get.nextLine();
         GodFather godFather = new GodFather(name);
-        System.out.println("Hi " + name + "\nRemember that you are God father in this game\nLead the Mafia's group");
+        System.out.println("Hi " + name + "\nRemember that you are God Father in this game\nKill citizens");
         try {
             socket = new Socket("localhost", 6186);
+            godFather.setSocket(socket);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
             String info = godFather.getName() + "/" + godFather.getType() + "/" + godFather.getSubType();
@@ -32,6 +33,7 @@ public class Main {
             System.exit(1);
         }
         godFather.chat(socket);
+        godFather.introduce();
         while (true){}
     }
 }

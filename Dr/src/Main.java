@@ -17,6 +17,7 @@ public class Main {
         System.out.println("Hi " + name + "\nRemember that you are Dr in this game\nTry to save citizens!");
         try {
             socket = new Socket("localhost", 6186);
+            dr.setSocket(socket);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
             String info = dr.getName() + "/" + dr.getType() + "/" + dr.getSubType();
@@ -30,6 +31,12 @@ public class Main {
             System.exit(1);
         }
         dr.chat(socket);
-        while (true){}
+        while (true){
+            if (!dr.getAlive()){
+                System.out.println("You are died!!!");
+                System.exit(1);
+            }
+            dr.chat(socket);
+        }
     }
 }

@@ -9,12 +9,34 @@ public class Detective {
     private boolean alive;
     private String type;
     private String subType;
-    public Detective(String name){
+    private Socket socket;
+
+    public Detective(String name) {
         this.name = name;
         alive = true;
         type = "Citizen";
         subType = "Detective";
     }
+
+    public boolean getAlive(){
+        return alive;
+    }
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getSubType() {
+        return subType;
+    }
+
 
     public void chat(Socket socket) {
         try {
@@ -39,15 +61,5 @@ public class Detective {
             System.exit(1);
         }
     }
-    public String getName() {
-        return name;
-    }
 
-    public String getType() {
-        return type;
-    }
-
-    public String getSubType() {
-        return subType;
-    }
 }

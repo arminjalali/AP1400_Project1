@@ -3,9 +3,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class Game {
 
@@ -23,13 +23,13 @@ public class Game {
         }
         return null;
     }
-    public void firstNight(HashMap<String , Socket> all , HashMap<String , Socket> mafia , Socket socket){
-
-    }
     public void welcome(){
         System.out.println("Welcome!\nThe game started...\nThe introducing time. introduce yourself");
-
-
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (InterruptedException e) {
+            System.out.println("Error on sleep but go on...");
+        }
     }
 
     public void beReady(Socket socket , Player player){

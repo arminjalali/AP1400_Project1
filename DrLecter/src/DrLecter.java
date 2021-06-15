@@ -5,11 +5,14 @@ import java.io.Serializable;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class DrLecter implements Serializable {
+public class DrLecter{
     private String name;
     private boolean alive;
     private String type;
     private String subType;
+    private Socket socket;
+    DataOutputStream out;
+    DataInputStream input;
     public DrLecter(String name){
         this.name = name;
         alive = true;
@@ -20,8 +23,8 @@ public class DrLecter implements Serializable {
     public void chat(Socket socket) {
         try {
             Scanner get = new Scanner(System.in);
-            DataInputStream input = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+            input = new DataInputStream(socket.getInputStream());
+            out = new DataOutputStream(socket.getOutputStream());
             System.out.println(input.readUTF());
             while (true) {
                 if (input.readUTF().equals("End")){
@@ -40,6 +43,14 @@ public class DrLecter implements Serializable {
             System.exit(1);
         }
     }
+    public void introduce(){
+        try {
+            input = new DataInputStream(socket.getInputStream());
+            System.out.println(input.readUTF());
+        } catch (IOException e) {
+            System.out.println("Error!");
+        }
+    }
     public String getName() {
         return name;
     }
@@ -52,4 +63,7 @@ public class DrLecter implements Serializable {
         return subType;
     }
 
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
 }
