@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 public class Main {
 
     public static void main(String[] args) {
-        Scanner get = new Scanner(System.in);
         ServerSocket server = null;
         ArrayList <Player> all = new ArrayList<>();
         ArrayList <Player> mafia = new ArrayList<>();
@@ -25,25 +24,33 @@ public class Main {
         }
         int counter = 0;
             try {
-                while (counter != 10) {
+                while (counter != 5) {
                     Socket socket = server.accept();
                     all.add(game.initial(socket));
                     game.beReady(socket);
                     counter ++;
                 }
                 int day = 0;
+                game.setAll(all);
                 game.setMafia();
+                game.sendToAll(all.size());
                 game.welcome();
-                game.globalChat(all);
+                game.globalChat();
                 game.introduceMafia();
                 game.introduceCitizens();
                 while (true){
                     day++;
                     System.out.println("Day number: " + day);
                     TimeUnit.SECONDS.sleep(4);
-                    game.globalChat(all);
+                    game.sendToAll(all.size());
+                    game.globalChat();
                     TimeUnit.SECONDS.sleep(4);
-                    game.globalVote(all);
+                    game.sendToAll(all.size());
+                    game.globalVote();
+                    game.sendToAll(all.size());
+                    game.night();
+                    game.mafiaChat();
+
 
 
                 }

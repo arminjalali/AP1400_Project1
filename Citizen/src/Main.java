@@ -3,43 +3,49 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) {
-        DataOutputStream out = null;
-        DataInputStream in = null;
+    public static void main(String[] args) throws InterruptedException, IOException {
+        DataOutputStream out;
+        DataInputStream in;
         Scanner get = new Scanner(System.in);
         Socket socket = null;
         System.out.println("Enter your name");
         String name = get.nextLine();
-        Citizen citizen = new Citizen(name);
+        Citizen citizen = null;
         System.out.println("Hi " + name + "\nRemember that you are simple Citizen in this game\nJust vote to kill Mafia");
         try {
             socket = new Socket("localhost", 6186);
-            citizen.setSocket(socket);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
+            citizen = new Citizen(socket, name, in, out);
             String info = citizen.getName() + "/" + citizen.getType() + "/" + citizen.getSubType();
             out.writeUTF(info);
             System.out.println("Enter a key to start");
             out.writeUTF(get.nextLine());
             System.out.println(in.readUTF());
-        }
-        catch (IOException e){
-            System.out.println("Error on connection to the server!");
+        } catch (IOException e) {
+            System.out.println("Error in connection to the server!");
             System.exit(1);
         }
-        citizen.chat(socket);
-        citizen.introduce();
-        while (true){
-            if (!citizen.getAlive()){
+        TimeUnit.SECONDS.sleep(2);
+        new DataInputStream(socket.getInputStream()).readUTF();
+        citizen.chat();
+        while (true) {
+            if (!citizen.getAlive()) {
                 System.out.println("You died!!!");
                 System.exit(1);
             }
-            citizen.chat(socket);
-            citizen.vote();
-
+            TimeUnit.SECONDS.sleep(2);
+            new DataInputStream(socket.getInputStream()).readUTF();
+            citizen.chat();
+            String str = new DataInputStream(socket.getInputStream()).readUTF();
+            TimeUnit.SECONDS.sleep(4);
+            citizen.vote(Integer.parseInt(str));
+            new DataInputStream(socket.getInputStream()).readUTF();
         }
     }
 }

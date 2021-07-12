@@ -29,4 +29,11 @@ public class Player {
     public String getType() {
         return type;
     }
+    public boolean getAlive(){
+        return alive;
+    }
+
+    public void save() {
+        alive = true;
+    }
 }

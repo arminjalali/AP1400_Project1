@@ -7,20 +7,20 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) {
-        DataOutputStream out = null;
-        DataInputStream in = null;
+    public static void main(String[] args) throws InterruptedException, IOException {
+        DataOutputStream out;
+        DataInputStream in;
         Scanner get = new Scanner(System.in);
         Socket socket = null;
         System.out.println("Enter your name");
         String name = get.nextLine();
-        Mayor mayor = new Mayor(name);
+        Mayor mayor = null;
         System.out.println("Hi " + name + "\nRemember that you are Mayor in this game\nTry to handle votes and save Dr");
         try {
             socket = new Socket("localhost", 6186);
-            mayor.setSocket(socket);
             out = new DataOutputStream(socket.getOutputStream());
             in = new DataInputStream(socket.getInputStream());
+            mayor = new Mayor(socket , name , in , out);
             String info = mayor.getName() + "/" + mayor.getType() + "/" + mayor.getSubType();
             out.writeUTF(info);
             System.out.println("Enter a key to start");
@@ -31,16 +31,33 @@ public class Main {
             System.out.println("Error on connection to the server!");
             System.exit(1);
         }
-        mayor.chat(socket);
+        TimeUnit.SECONDS.sleep(2);
+        new DataInputStream(socket.getInputStream()).readUTF();
+        mayor.chat();
         mayor.introduce();
         while (true){
             if (!mayor.getAlive()){
                 System.out.println("You died!!!");
                 System.exit(1);
             }
-            mayor.chat(socket);
-            mayor.vote();
-
+            TimeUnit.SECONDS.sleep(2);
+            new DataInputStream(socket.getInputStream()).readUTF();
+            mayor.chat();
+            String str = null;
+            try {
+                str = new DataInputStream(socket.getInputStream()).readUTF();
+            } catch (IOException e) {
+                System.out.println("Error in connection!");
+                System.exit(0);
+            }
+            TimeUnit.SECONDS.sleep(4);
+            mayor.vote(Integer.parseInt(str));
+            try {
+                new DataInputStream(socket.getInputStream()).readUTF();
+            } catch (IOException e) {
+                System.out.println("Error in connection!");
+                System.exit(0);
+            }
         }
     }
 }

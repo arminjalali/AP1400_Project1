@@ -8,19 +8,44 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class Game {
-    ArrayList <Player> def = null;
-    ArrayList <Player> all;
-    ArrayList <Player> mafia;
-    int counter = 0;
-    Player playerReady;
-    int flag = 0;
+    private int endOfChat = 0;
+    private ArrayList <Player> all;
+    private ArrayList <Player> mafia;
+    private Player mayor;
+    private Player citizen;
+    private Player simpleMafia;
+    private Player drLecter;
+    private Player godFather;
+    private Player hardDie;
+    private Player psychologist;
+    private Player dr;
+    private Player detective;
+    private Player pro;
+    private Player playerReady;
     public Game(ArrayList <Player> all , ArrayList <Player> mafia){
         this.all = all;
         this.mafia = mafia;
     }
+    public void setAll(ArrayList<Player> all) {
+        this.all = all;
+        for (Player player : all){
+            if (player.getSubType().equals("Mayor")){
+                mayor = player;
+            }
+            if (player.getSubType().equals("Dr")){
+                dr = player;
+            }
+            if (player.getSubType().equals("Mafia")){
+                simpleMafia = player;
+            }
+            if (player.getSubType().equals("GodFather")){
+                godFather = player;
+            }
+            if (player.getSubType().equals("DrLecter")){
+                drLecter = player;
+            }
 
-    public void setDef(ArrayList<Player> def) {
-        this.def = def;
+        }
     }
 
     public Player initial(Socket socket) {
@@ -39,7 +64,7 @@ public class Game {
     }
 
     public void welcome() {
-        System.out.println("Welcome!\nThe game started...\nThe introducing time. introduce yourself");
+        System.out.println("Welcome!\nThe game started...\nThe introducing time. introduce yourself in a minute");
         try {
             TimeUnit.SECONDS.sleep(5);
         } catch (InterruptedException e) {
@@ -90,242 +115,260 @@ public class Game {
         }
     }
 
-    public void globalVote(ArrayList<Player> arr) {
-        ArrayList<Integer> holdVotes = new ArrayList();
-        System.out.println("Vote time! for every player send 1 to vote");
-        try {
-            TimeUnit.SECONDS.sleep(5);
-        } catch (InterruptedException e) {
-            System.out.println("Error on sleep but go on...");
+        public void sendToAll(int size){
+            for (Player player : all) {
+                try {
+                    new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("" + size);
+                } catch (IOException e) {
+                    System.out.println("Error in connection...");
+                }
+            }
+
         }
-        if (arr.size() == 1){
-            try {
-                Socket s = arr.get(0).getSocket();
-                new DataOutputStream(s.getOutputStream()).writeUTF("Finish!");
-                new DataInputStream(s.getInputStream()).readUTF();
-                new DataOutputStream(s.getOutputStream()).writeUTF("");
-            } catch (IOException e) {
-                System.out.println("Not found!");
+        public void sendYesOrNoForDefendant(int num , int size){
+            for (Player player : all) {
+                try {
+                    if (num == 0) {
+                        new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("0");
+                    }
+                    else if (num == 1){
+                        new DataOutputStream(player.getSocket().getOutputStream()).writeUTF(String.valueOf(size));
+                    }
+                } catch (IOException e) {
+                    System.out.println("Error in connection...");
+                }
             }
         }
-        for (int i = 0; i < arr.size(); i++) {
-            int vote = 0;
-            System.out.println("Vote to " + arr.get(i).getName());
-            try {
-                for (int j = 0; j < all.size(); j++) {
-                    if (arr.get(i).getName().equals(all.get(j).getName())) {
+        public void cancelVoting(ArrayList <Player> defendant) throws IOException {
+        for (Player player : defendant){
+            new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("");
+        }
+        }
+        public void sendYesToDefendants(ArrayList<Player> defendant){
+            for (Player player : all){
+                try {
+                        if (defendant.contains(player)){
+                            new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("1");
+                        }
+                        else {
+                            new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("0");
+                        }
+
+                }catch (IOException e){
+                    System.out.println("Error!");
+                }
+            }
+        }
+        public void specialVote(ArrayList<Player> defendant) throws InterruptedException, IOException {
+            ArrayList<Integer> holdVotes = new ArrayList();
+            TimeUnit.SECONDS.sleep(2);
+            System.out.println("At least " + Math.ceil((double) all.size()/2) + " vote for remove");
+            for (int i = 0 ; i < defendant.size() ; i++){
+                int vote = 0;
+                System.out.println("Vote to " + defendant.get(i).getName());
+                for (Player player : all) {
+                    if (defendant.contains(player)){
                         continue;
                     }
-                    DataOutputStream out = new DataOutputStream(all.get(j).getSocket().getOutputStream());
-                    DataInputStream in = new DataInputStream(all.get(j).getSocket().getInputStream());
-                    TimerTask timerTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            System.out.println("Time is up!");
-                            try {
-                                out.writeUTF("Time is over");
-                                flag = 1;
+                    System.out.println(player.getName() + " 15 seconds for vote");
+                    String str = null;
+                    try {
+                        new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("Vote to " + defendant.get(i).getName());
+                        str = new DataInputStream(player.getSocket().getInputStream()).readUTF();
 
-                            } catch (IOException e) {
-                                System.out.println("Error on write");
-                            }
-                        }
-                    };
-                    Timer timer = new Timer();
-                    out.writeUTF("Enter 1 to vote");
-                    timer.schedule(timerTask, 15 * 1000);
-                    String str = in.readUTF();
+                    } catch (IOException e) {
+                        System.out.println("Connection lost!");
+                    }
                     if (str.equals("1")) {
-                            System.out.println(all.get(j).getName() + " vote 1");
-                            out.writeUTF("Successful");
-                            vote++;
-
+                        vote += 1;
+                    } else {
+                        vote += 0;
                     }
-                    else {
-                        flag = 0;
-                        out.writeUTF("Successful");
-                        System.out.println(all.get(j).getName() + " vote 0");
-                    }
-                    timer.cancel();
-                    timerTask.cancel();
                 }
-            } catch (IOException e) {
-                System.out.println("Error on connection!");
+                holdVotes.add(vote);
             }
+            removeByVote(holdVotes , defendant);
+        }
+        public void removeByVote(ArrayList<Integer> votes , ArrayList<Player> defendant) throws InterruptedException, IOException {
+            int half = (int) Math.ceil((double) all.size()/2);
+            int max = 0;
+            int draw = 0;
+            for (int i = 0 ; i < defendant.size() ; i++){
+                if (votes.get(i) > max){
+                    max = votes.get(i);
+                }
+            }
+            if (max < half){
+                TimeUnit.SECONDS.sleep(2);
+                System.out.println("Nobody removed!");
+                TimeUnit.SECONDS.sleep(2);
+                for(Player player : defendant){
+                    new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("No");
+                }
+                return;
+            }
+            for (int i = 0 ; i < defendant.size() ; i++){
+                if (votes.contains(max)){
+                    draw++;
+                }
+                if (draw>1){
+                    System.out.println("Draw!");
+                    TimeUnit.SECONDS.sleep(2);
+                    for(Player player : defendant){
+                        new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("No");
+                    }
+                    return;
+                }
+            }
+            int num = 0;
+            for (int i = 0 ; i < votes.size() ; i++){
+                if (votes.get(i).equals(max)){
+                    num = i;
+                }
+                else {
+                    new DataOutputStream(defendant.get(i).getSocket().getOutputStream()).writeUTF("No");
+                }
+            }
+            System.out.println("Player " + defendant.get(num).getName() + " you have been removed!\nThe last word");
+            TimeUnit.SECONDS.sleep(3);
+            new DataOutputStream(defendant.get(num).getSocket().getOutputStream()).writeUTF("Yes");
+            ArrayList<Player> removed = new ArrayList<>();
+            removed.add(defendant.get(num));
+            specialChat(removed);
+            TimeUnit.SECONDS.sleep(1);
+            all.remove(defendant.get(num));
+            mafia.remove(defendant.get(num));
+            checkFinish();
+
+        }
+        public void globalVote() throws InterruptedException, IOException {
+        ArrayList<Integer> holdVotes = new ArrayList();
+        System.out.println("Vote time! for every player send 1 to vote");
+            TimeUnit.SECONDS.sleep(2);
+        for (int i = 0; i < all.size(); i++) {
+            String s = "";
+            int vote = 0;
+            System.out.println("Vote to " + all.get(i).getName());
+            for (Player player : all) {
+                System.out.println(player.getName() + " 15 seconds for vote");
+                String str = null;
+                try {
+                    new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("Vote to " + all.get(i).getName());
+                    str = new DataInputStream(player.getSocket().getInputStream()).readUTF();
+
+                } catch (IOException e) {
+                    System.out.println("Connection lost!");
+                }
+                s += player.getName() + " vote " + str + "\n";
+                if (str.equals("1")) {
+                    vote += 1;
+                } else {
+                    vote += 0;
+                }
+            }
+            System.out.println("For " + all.get(i).getName() + " \n" + s);
             holdVotes.add(vote);
         }
-        if (counter == 0) {
-            counter = 1;
-            ArrayList<Player> defenders = checkVotes(holdVotes);
-            setDef(defenders);
-            if (defenders != null) {
-                try {
-                    TimeUnit.SECONDS.sleep(4);
-                    globalChat(defenders);
-                    TimeUnit.SECONDS.sleep(5);
-                    globalVote(defenders);
-                    TimeUnit.SECONDS.sleep(5);
+            ArrayList<Player> defendants = checkVotes(holdVotes);
+            if (defendants.size() == 0){
+                TimeUnit.SECONDS.sleep(1);
+                System.out.println("No defendant!");
+                TimeUnit.SECONDS.sleep(1);
+                sendYesOrNoForDefendant(0 , 0);
+            }
+            else {
+                TimeUnit.SECONDS.sleep(1);
+                sendYesOrNoForDefendant(1 , defendants.size());
+                TimeUnit.SECONDS.sleep(1);
+                sendYesToDefendants(defendants);
+                TimeUnit.SECONDS.sleep(1);
+                specialChat(defendants);
+                TimeUnit.SECONDS.sleep(2);
+                int MAction = mayorAction();
+                if (MAction==100) {
+                    weHaveMayorAction(0 , defendants);
+                    specialVote(defendants);
                 }
-                catch (InterruptedException e){
-                    System.out.println("Go on...");
+                else if (MAction == 200){
+                    weHaveMayorAction(1 , defendants);
+                    cancelVoting(defendants);
                 }
+                else {
+                    cancelVoting(defendants);
+                    weHaveMayorAction(1 , defendants);
+                    System.out.println("Player " + all.get(MAction).getName() + " you have been removed!\nThe last word");
+                    TimeUnit.SECONDS.sleep(3);
+                    new DataOutputStream(all.get(MAction).getSocket().getOutputStream()).writeUTF("Yes");
+                    ArrayList<Player> removed = new ArrayList<>();
+                    removed.add(all.get(MAction));
+                    specialChat(removed);
+                    TimeUnit.SECONDS.sleep(1);
+                    all.remove(MAction);
+                    mafia.remove(removed.get(0));
+                    checkFinish();
+                }
+                TimeUnit.SECONDS.sleep(2);
             }
-        }
-        else if (counter == 1){
-            counter = 0;
-            removeByVote(holdVotes , def);
-        }
     }
-    public void sendYesToRemove(Player player){
-        try {
-            new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("Yes");
-        } catch (IOException e) {
-            System.out.println("Not found!");
-        }
-    }
-    public void removeByVote(ArrayList<Integer> votes, ArrayList<Player> defenders){
-        int half = (int) Math.ceil(all.size()/2);
-        int counter = 0;
-        int counter2 = 0;
-        for (int i = 0 ; i < votes.size() ; i++){
-            if (votes.get(i) > counter){
-                counter = votes.get(i);
-            }
-        }
-        if (counter < half){
-            System.out.println("Nobody removed!");
-            responseToAllDefenders(defenders);
-            return;
-        }
-        for (int i = 0 ; i < votes.size() ; i++){
-            if (votes.get(i).equals(counter)){
-                counter2 ++;
-            }
-        }
-        if (counter2 > 1){
-            System.out.println("Draw!!!");
-            responseToAllDefenders(defenders);
-            return;
-        }
-        for (int i = 0 ; i < votes.size() ; i++){
-            if (votes.get(i).equals(counter)){
-                System.out.println("Player " + all.get(i).getName() + " you have been removed! your\nThe last word");
-                sendYesToRemove(all.get(i));
-                defenders.remove(all.get(i));
-                responseToAllDefenders(defenders);
-                ArrayList <Player> rem = new ArrayList<>();
-                rem.add(all.get(i));
-                globalChat(rem);
-                all.remove(i);
-                mafia.remove(rem.get(0));
-                checkFinish();
-                break;
-            }
-        }
-    }
-    public void responseToAllDefenders(ArrayList<Player> defenders){
-        for (int i = 0 ; i < defenders.size() ; i++){
-            try {
-                new DataOutputStream(defenders.get(i).getSocket().getOutputStream()).writeUTF("");
-            } catch (IOException e) {
-                System.out.println("Error!");
-            }
-        }
-    }
-    public void globalChat(ArrayList<Player> all) {
-        flag = 0;
 
-            try {
-                for (int i = 0; i < all.size(); i++) {
-                    DataOutputStream out;
-                    DataInputStream in;
-                    DataOutputStream finalOut = new DataOutputStream(all.get(i).getSocket().getOutputStream());
-                    TimerTask timerTask = new TimerTask() {
-                        @Override
-                        public void run() {
-                            System.out.println("Time is up!");
-                            try {
-                                finalOut.writeUTF("End");
-                            } catch (IOException e) {
-                                System.out.println("Error on write");
-                            }
-                            flag = 1;
-
-                        }
-                    };
-                    out = new DataOutputStream(all.get(i).getSocket().getOutputStream());
-                    out.writeUTF("30 second for talk and enter '0' to end");
-                    System.out.println(all.get(i).getName() + " it's your turn to talk");
-                    Timer timer = new Timer();
-                    in = new DataInputStream(all.get(i).getSocket().getInputStream());
-                    timer.schedule(timerTask, 30 * 1000);
-                    while (true) {
-                        if (flag == 1) {
-                            System.out.println("flag?");
-                            flag = 0;
-                            break;
-                        }
-                        out.writeUTF("");
-                        String str = in.readUTF();
-                        if (flag == 1) {
-                            flag = 0;
-                            break;
-                        }
-                        if (str.equals("0")) {
-                            System.out.println("End of " + all.get(i).getName() + "'s speech");
-                            break;
-                        }
-                        System.out.println(all.get(i).getName() + ": " + str);
-                    }
-                    timer.cancel();
-                    timerTask.cancel();
-                    TimeUnit.SECONDS.sleep(2);
-                }
-            } catch (IOException e) {
-                System.out.println("Error on connection!");
-                System.exit(1);
-            } catch (InterruptedException e) {
-                System.out.println("Error on sleep! but go on...");
+    public void globalChat() throws InterruptedException {
+        System.out.println("Free chat for all!");
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Time is over!");
+                endOfChat = 1;
             }
+        };
+        for (int i = 0 ; i < all.size() ; i++){
+            new Chat(all.get(i)).start();
+        }
+        timer.schedule(timerTask, 10 * 1000);
+        while (true) {
+            TimeUnit.SECONDS.sleep(1);
+            if (endOfChat == 1) {
+                endOfChat = 0;
+                timer.cancel();
+                timerTask.cancel();
+                return;
+            }
+        }
+    }
+    public void specialChat(ArrayList <Player> defendant) throws InterruptedException {
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Time is over!");
+                endOfChat = 1;
+            }
+        };
+        for (int i = 0 ; i < defendant.size() ; i++){
+            new Chat(defendant.get(i)).start();
+        }
+        timer.schedule(timerTask, 10 * 1000);
+        while (true) {
+            TimeUnit.SECONDS.sleep(1);
+            if (endOfChat == 1) {
+                endOfChat = 0;
+                timer.cancel();
+                timerTask.cancel();
+                return;
+            }
+        }
     }
     public void introduceCitizens(){
-
-        Player M = null;
-        Player Dr = null;
-        Player Det = null;
-        Player Pro = null;
-        Player Psy = null;
-        Player H = null;
-        for (int i = 0 ; i < all.size() ; i++){
-            if (all.get(i).getSubType().equals("Mayor")){
-                M = all.get(i);
-            }
-            if (all.get(i).getSubType().equals("Dr")){
-                Dr = all.get(i);
-            }
-            if (all.get(i).getSubType().equals("Detective")){
-                Det = all.get(i);
-            }
-            if (all.get(i).getSubType().equals("Pro")){
-                Pro = all.get(i);
-            }
-            if (all.get(i).getSubType().equals("Psychologist")){
-                Psy = all.get(i);
-            }
-            if (all.get(i).getSubType().equals("HardDie")){
-                H = all.get(i);
-            }
-        }
         try {
             System.out.println("Mayor wake up");
-            new DataOutputStream(M.getSocket().getOutputStream()).writeUTF("You are Mayor and " + Dr.getName() + " is Dr");
+            new DataOutputStream(mayor.getSocket().getOutputStream()).writeUTF("You are Mayor and " + dr.getName() +" is Dr");
             TimeUnit.SECONDS.sleep(5);
 
             System.out.println("Dr wake up");
-            new DataOutputStream(Dr.getSocket().getOutputStream()).writeUTF("You are Dr");
+            new DataOutputStream(dr.getSocket().getOutputStream()).writeUTF("You are Dr");
             TimeUnit.SECONDS.sleep(5);
 
-            System.out.println("Detective wake up");
+          /*  System.out.println("Detective wake up");
             new DataOutputStream(Det.getSocket().getOutputStream()).writeUTF("You are Detective");
             TimeUnit.SECONDS.sleep(5);
 
@@ -339,7 +382,7 @@ public class Game {
 
             System.out.println("Hard-die wake up");
             new DataOutputStream(H.getSocket().getOutputStream()).writeUTF("You are Hard-die");
-            TimeUnit.SECONDS.sleep(5);
+            TimeUnit.SECONDS.sleep(5);*/
 
         } catch (IOException e) {
             System.out.println("Error on connection to clients!");
@@ -347,7 +390,7 @@ public class Game {
             System.out.println("Error on sleep but go on...");
         }
     }
-    public void introduceMafia(){
+    public void introduceMafia() throws InterruptedException {
 
         System.out.println("This is introducing night\nEverybody sleep!");
         try {
@@ -358,74 +401,134 @@ public class Game {
             System.out.println("Error on sleep! but go on...");
         }
         try {
-            Player S = null;
-            Player G = null;
-            Player D = null;
-            for (int i = 0 ; i < mafia.size() ; i++) {
-                if (mafia.get(i).getSubType().equals("GodFather")){
-                    G = mafia.get(i);
-                }
-                if (mafia.get(i).getSubType().equals("DrLecter")){
-                    D = mafia.get(i);
-                }
-                if (mafia.get(i).getSubType().equals("Simple")){
-                    S = mafia.get(i);
-                }
-            }
-            String info = S.getName() + ": " + S.getSubType() +"\n" + G.getName() + ": " + G.getSubType() + "\n" + D.getName() + ": " + D.getSubType();
-            new DataOutputStream(S.getSocket().getOutputStream()).writeUTF(info);
-            new DataOutputStream(G.getSocket().getOutputStream()).writeUTF(info);
-            new DataOutputStream(D.getSocket().getOutputStream()).writeUTF(info);
+
+            String info = simpleMafia.getName() + ": " + simpleMafia.getSubType() +"\n" + godFather.getName() + ": " + godFather.getSubType() + "\n" + drLecter.getName() + ": " + drLecter.getSubType();
+            new DataOutputStream(simpleMafia.getSocket().getOutputStream()).writeUTF(info);
+            new DataOutputStream(godFather.getSocket().getOutputStream()).writeUTF(info);
+            new DataOutputStream(drLecter.getSocket().getOutputStream()).writeUTF(info);
+            TimeUnit.SECONDS.sleep(5);
         } catch (IOException e) {
             System.out.println("Error!");
         }
     }
-    public void night(){
+    public void mafiaChat() throws InterruptedException, IOException {
+        System.out.println("Mafia wake up");
+        for (int i = 0 ; i < mafia.size() ; i++){
+            new DataOutputStream(mafia.get(i).getSocket().getOutputStream()).writeUTF("1");
+            for (Player player : mafia){
+                if (!player.equals(mafia.get(i))){
+                    new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("2");
+                }
+            }
+            String str = new DataInputStream(mafia.get(i).getSocket().getInputStream()).readUTF();
+            for (Player player : mafia){
+                if (!player.equals(mafia.get(i))) {
+                    new DataOutputStream(player.getSocket().getOutputStream()).writeUTF(str);
+                }
+            }
+        }
+        for (Player player : mafia){
+            new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("0");
+        }
+    }
+    public void night() throws IOException {
 
+    /*    System.out.println("Dr wake up and save");
+        for (int i = 0 ; i < all.size() ; i++){
+            System.out.println((i + 1) + " " + all.get(i).getName());
+        }
+        if (dr.getAlive()) {
+            String drChoose = new DataInputStream(dr.getSocket().getInputStream()).readUTF();
+            int d = Integer.parseInt(drChoose);
+            if (drChoose != null && d <= all.size() && d > 0) {
+                d = d-1;
+                all.get(d).save();
+            }
+        }*/
     }
     public ArrayList<Player> checkVotes(ArrayList <Integer> votes){
-        ArrayList<Player> defender = new ArrayList<>();
-        int half = (int) Math.ceil(all.size()/2);
+        ArrayList<Player> defendant = new ArrayList<>();
+        int half = (int) Math.ceil((double) all.size()/2);
         for (int i = 0 ; i < votes.size() ; i++){
             if (votes.get(i) >= half){
-                defender.add(all.get(i));
+                defendant.add(all.get(i));
             }
         }
-        for (int j = 0 ; j < defender.size() ; j++){
-            System.out.println("Player " + defender.get(j).getName() + " must defend");
+        for (int j = 0 ; j < defendant.size() ; j++){
+            System.out.println("Player " + defendant.get(j).getName() + " must defend");
         }
-        sendYes(defender);
-        return defender;
+        return defendant;
     }
-    public void sendYes(ArrayList<Player> defender) {
-        for (int j = 0; j < all.size(); j++) {
-            int counter = 0;
-            for (int i = 0 ; i < defender.size() ; i++){
-                if (all.get(j).getName().equals(defender.get(i).getName())){
-                    counter++;
-                    break;
-                }
-            }
-                try {
-                    if (counter != 0) {
-                        new DataOutputStream(all.get(j).getSocket().getOutputStream()).writeUTF("Yes");
-                    }
-                    else {
-                        new DataOutputStream(all.get(j).getSocket().getOutputStream()).writeUTF("");
-                    }
-                } catch (IOException e) {
-                    System.out.println("Error!");
-                }
-        }
-    }
+
+
     public void checkFinish(){
         if (mafia.size() == 0){
             System.out.println("CITIZEN WIN!");
             System.exit(1);
         }
-        else if ((int)Math.ceil(all.size()/2) == mafia.size()){
+        else if ((int)Math.ceil((double) all.size()/2) == mafia.size()){
             System.out.println("MAFIA WIN");
             System.exit(1);
         }
+    }
+    public void weHaveMayorAction(int num , ArrayList<Player> def) throws IOException {
+        for (Player player : all) {
+            if (player.equals(mayor) || def.contains(player)) {
+                continue;
+            }
+            if (num == 1) {
+                new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("Mayor");
+            }
+            else if (num == 0){
+                new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("");
+            }
+        }
+    }
+    public int mayorAction() throws IOException, InterruptedException {
+        DataInputStream in = new DataInputStream(mayor.getSocket().getInputStream());
+        DataOutputStream out = new DataOutputStream(mayor.getSocket().getOutputStream());
+        System.out.println("Mayor wake up");
+        TimeUnit.SECONDS.sleep(2);
+        if(!mayor.getAlive()) {
+            System.out.println("Mayor sleep");
+            TimeUnit.SECONDS.sleep(3);
+            return 100;
+        }
+        out.writeUTF("");
+        String doOrNot = in.readUTF();
+        if (doOrNot.equals("1")){
+            String cancelOrDirect = in.readUTF();
+            if (cancelOrDirect.equals("1")){
+                System.out.println("The mayor cancelled voting...\nNobody removed");
+                TimeUnit.SECONDS.sleep(3);
+                return 200;
+            }
+            else if (cancelOrDirect.equals("2")){
+                System.out.println("Direct vote to exit...");
+                for (int i = 0 ; i < all.size() ; i++){
+                    System.out.println((i + 1)+ ") " + all.get(i).getName() + "\n");
+                }
+                String player = in.readUTF();
+                if (player == null){
+                    return 100;
+                }
+                int choose = Integer.parseInt(player);
+                if (choose < 1 || choose > all.size()){
+                    return 100;
+                }
+                else {
+                    System.out.println("The mayor decided to remove " + all.get(choose-1).getName());
+                    return (choose - 1);
+                }
+            }
+        }
+        else if (doOrNot.equals("No more")){
+            System.out.println("Mayor already used ability\nMayor sleep");
+            TimeUnit.SECONDS.sleep(2);
+            return 100;
+        }
+        System.out.println("Mayor sleep");
+        TimeUnit.SECONDS.sleep(3);
+        return 100;
     }
 }

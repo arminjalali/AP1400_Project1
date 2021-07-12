@@ -7,28 +7,25 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class Citizen {
-    int flag = 0;
+    private  int endOfChat = 0;
+    private DataInputStream in;
+    private DataOutputStream out;
     private String name;
     private boolean alive;
     private String type;
     private String subType;
     private Socket socket;
 
-    public Citizen(String name) {
+    public Citizen(Socket socket , String name , DataInputStream in , DataOutputStream out) {
+        this.socket = socket;
         this.name = name;
         alive = true;
         type = "Citizen";
         subType = "Citizen";
+        this.out = out;
+        this.in = in;
     }
 
-    public void introduce() {
-        try {
-            DataInputStream input = new DataInputStream(socket.getInputStream());
-            System.out.println(input.readUTF());
-        } catch (IOException e) {
-            System.out.println("Error!");
-        }
-    }
 
     public boolean getAlive() {
         return alive;
@@ -51,104 +48,98 @@ public class Citizen {
     }
 
 
-    public void chat(Socket socket) {
+    public void chat() {
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                endOfChat = 1;
+            }
+        };
         try {
-            TimerTask timerTask = new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                        out.writeUTF("");
-                        flag = 1;
-                    } catch (IOException e) {
-                        System.out.println("Error on socket...");
-                    }
-                }
-            };
-            Timer timer = new Timer();
-            Scanner get = new Scanner(System.in);
-            DataInputStream input = new DataInputStream(socket.getInputStream());
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            System.out.println(input.readUTF());
-            timer.schedule(timerTask , 35 * 1000);
+            System.out.println("You can chat");
+            timer.schedule(timerTask ,10 * 1000);
+            Execute ex = new Execute(1);
             while (true) {
-                if (input.readUTF().equals("End")) {
-                    System.out.println("Time is over");
+                String str = ex.readLine();
+                if (endOfChat == 1){
+                    endOfChat = 0;
                     timer.cancel();
-                    timerTask.cancel();
-                    flag = 0;
-                    break;
-                }
-                String str = get.nextLine();
-                if (flag !=0){
-                    continue;
+                    out.writeUTF("EndOfChat");
+                    return;
                 }
                 out.writeUTF(str);
-                if (str.equals("0")) {
-                    timer.cancel();
-                    timerTask.cancel();
-                    break;
-                }
             }
-        } catch (IOException e) {
+        }
+        catch(IOException | InterruptedException e){
             System.out.println("Error on connection!");
-            System.exit(1);
         }
     }
-    public void vote(){
-        try {
-            TimerTask timerTask = new TimerTask() {
-                @Override
-                public void run() {
-                    try {
-                        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-                        out.writeUTF("");
-                        flag = 1;
-                    } catch (IOException e) {
-                        System.out.println("Error on socket...");
-                    }
-                }
-            };
-            Timer timer = new Timer();
-            Scanner get = new Scanner(System.in);
-            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            System.out.println(in.readUTF());
-            timer.schedule(timerTask , 16 * 1000);
-            String str = get.nextLine();
-            if (flag != 0){
-                flag = 0;
-            }
-            else {
-                out.writeUTF(str);
+    public void vote(int size) throws InterruptedException, IOException {
+        for (int i = 0; i < size; i++) {
+            try {
                 System.out.println(in.readUTF());
+            } catch (IOException e) {
+                System.out.println("Error in connecting to the server!");
             }
-            timer.cancel();
-            timerTask.cancel();
-        } catch (IOException e) {
-            System.out.println("Error on vote");
+            Execute ex = new Execute(0);
+            String str = ex.readLine();
+            if (str == null) {
+                out.writeUTF("0");
+                continue;
+            }
+            try {
+                out.writeUTF(str);
+            } catch (IOException e) {
+                System.out.println("Closed!");
+            }
         }
-        doIDefend();
-    }
-    public void doIDefend(){
-        try {
-            DataInputStream in = new DataInputStream(socket.getInputStream());
-            String str = in.readUTF();
-            if (str.equals("Yes")){
-                System.out.println("You must defend yourself!!!");
-                chat(socket);
-                vote();
-                String str2 = in.readUTF();
-                if (str2.equals("Yes")){
-                    chat(socket);
+        int sizeOfDefender;
+        if ((sizeOfDefender = haveDefender()) != 0){
+            System.out.println("We have defendant!");
+            if (doIDefend()){
+                System.out.println("You must defend yourself!");
+                chat();
+                if (checkIRemoved()){
+                    System.out.println("Last word...");
+                    chat();
                     alive = false;
                 }
-                else {
-                    System.out.println("You survived!");
+            }
+            else {
+                if (!(in.readUTF().equals("Mayor"))) {
+                    specialVote(sizeOfDefender);
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Error on connection!");
         }
+    }
+    public void specialVote(int size) throws InterruptedException, IOException {
+        for (int i = 0; i < size; i++) {
+            try {
+                System.out.println(in.readUTF());
+            } catch (IOException e) {
+                System.out.println("Error in connecting to the server!");
+            }
+            Execute ex = new Execute(0);
+            String str = ex.readLine();
+            if (str == null) {
+                out.writeUTF("0");
+                continue;
+            }
+            try {
+                out.writeUTF(str);
+            } catch (IOException e) {
+                System.out.println("Closed!");
+            }
+        }
+    }
+    public boolean checkIRemoved() throws IOException {
+        return in.readUTF().equals("Yes");
+    }
+    public int haveDefender() throws IOException {
+        return Integer.parseInt(in.readUTF());
+    }
+    public boolean doIDefend() throws IOException {
+        return in.readUTF().equals("1");
     }
 }
