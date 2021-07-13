@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws InterruptedException {
         DataOutputStream out;
         DataInputStream in;
         Scanner get = new Scanner(System.in);
@@ -32,7 +32,11 @@ public class Main {
             System.exit(1);
         }
         TimeUnit.SECONDS.sleep(2);
-        new DataInputStream(socket.getInputStream()).readUTF();
+        try {
+            new DataInputStream(socket.getInputStream()).readUTF();
+        } catch (IOException e) {
+            System.exit(0);
+        }
         mayor.chat();
         mayor.introduce();
         while (true){
@@ -41,7 +45,11 @@ public class Main {
                 System.exit(1);
             }
             TimeUnit.SECONDS.sleep(2);
-            new DataInputStream(socket.getInputStream()).readUTF();
+            try {
+                new DataInputStream(socket.getInputStream()).readUTF();
+            } catch (IOException e) {
+                System.exit(0);
+            }
             mayor.chat();
             String str = null;
             try {
@@ -51,7 +59,11 @@ public class Main {
                 System.exit(0);
             }
             TimeUnit.SECONDS.sleep(4);
-            mayor.vote(Integer.parseInt(str));
+            try {
+                mayor.vote(Integer.parseInt(str));
+            } catch (IOException e) {
+                System.exit(0);
+            }
             try {
                 new DataInputStream(socket.getInputStream()).readUTF();
             } catch (IOException e) {

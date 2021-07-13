@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws InterruptedException {
         DataOutputStream out;
         DataInputStream in;
         Scanner get = new Scanner(System.in);
@@ -35,19 +35,22 @@ public class Main {
         mafia.chat();
         mafia.introduce();
         while (true) {
-            if (!mafia.getAlive()) {
-                System.out.println("You died!!!");
-                System.exit(1);
+            try {
+                if (!mafia.getAlive()) {
+                    System.out.println("You died!!!");
+                    System.exit(1);
+                }
+                TimeUnit.SECONDS.sleep(2);
+                new DataInputStream(socket.getInputStream()).readUTF();
+                mafia.chat();
+                String str = new DataInputStream(socket.getInputStream()).readUTF();
+                TimeUnit.SECONDS.sleep(4);
+                mafia.vote(Integer.parseInt(str));
+                new DataInputStream(socket.getInputStream()).readUTF();
+                mafia.nightChat();
+            }catch (IOException e) {
+                System.exit(0);
             }
-            TimeUnit.SECONDS.sleep(2);
-            new DataInputStream(socket.getInputStream()).readUTF();
-            mafia.chat();
-            String str = new DataInputStream(socket.getInputStream()).readUTF();
-            TimeUnit.SECONDS.sleep(4);
-            mafia.vote(Integer.parseInt(str));
-            new DataInputStream(socket.getInputStream()).readUTF();
-            mafia.nightChat();
-
         }
     }
 }

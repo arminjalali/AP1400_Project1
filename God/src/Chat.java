@@ -8,8 +8,10 @@ import java.util.concurrent.TimeUnit;
 public class Chat extends Thread{
 
     Player player;
-    public Chat(Player player){
+    Player silent;
+    public Chat(Player player , Player silent){
         this.player = player;
+        this.silent = silent;
     }
     @Override
     public void run() {
@@ -19,7 +21,12 @@ public class Chat extends Thread{
                 if (str.equals("EndOfChat")) {
                     return;
                 }
-                System.out.println(player.getName() + ": " + str);
+                if (silent == null){
+                    System.out.println(player.getName() + ": " + str);
+                }
+                else if (!player.equals(silent)) {
+                    System.out.println(player.getName() + ": " + str);
+                }
             } catch (IOException ignored) {
             }
         }

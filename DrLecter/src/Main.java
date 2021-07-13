@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws InterruptedException {
         DataOutputStream out;
         DataInputStream in;
         Scanner get = new Scanner(System.in);
@@ -32,22 +32,32 @@ public class Main {
             System.exit(1);
         }
         TimeUnit.SECONDS.sleep(2);
-        new DataInputStream(socket.getInputStream()).readUTF();
+        try {
+            new DataInputStream(socket.getInputStream()).readUTF();
+        } catch (IOException e) {
+            System.exit(0);
+        }
         drLecter.chat();
         drLecter.introduce();
         while (true) {
-            if (!drLecter.getAlive()) {
-                System.out.println("You died!!!");
-                System.exit(1);
+            try {
+                if (!drLecter.getAlive()) {
+                    System.out.println("You died!!!");
+                    System.exit(1);
+                }
+                TimeUnit.SECONDS.sleep(2);
+                new DataInputStream(socket.getInputStream()).readUTF();
+                drLecter.chat();
+                String str = new DataInputStream(socket.getInputStream()).readUTF();
+                TimeUnit.SECONDS.sleep(4);
+                drLecter.vote(Integer.parseInt(str));
+                new DataInputStream(socket.getInputStream()).readUTF();
+                drLecter.nightChat();
+                new DataInputStream(socket.getInputStream()).readUTF();
+                drLecter.save();
+            }catch (IOException e) {
+                System.exit(0);
             }
-            TimeUnit.SECONDS.sleep(2);
-            new DataInputStream(socket.getInputStream()).readUTF();
-            drLecter.chat();
-            String str = new DataInputStream(socket.getInputStream()).readUTF();
-            TimeUnit.SECONDS.sleep(4);
-            drLecter.vote(Integer.parseInt(str));
-            new DataInputStream(socket.getInputStream()).readUTF();
-            drLecter.nightChat();
         }
     }
 }

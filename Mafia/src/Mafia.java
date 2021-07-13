@@ -66,13 +66,16 @@ public class Mafia {
                         endOfChat = 1;
                     }
                 };
-                System.out.println("Chat for kill someone!");
-                timer.schedule(timerTask , 20 * 1000);
+                System.out.println("Chat");
+                timer.schedule(timerTask , 10 * 1000);
                 Execute ex = new Execute(1);
                 String str = "";
                 while (true) {
-                    str += ex.readLine();
-                    str += "\n";
+                    String get = ex.readLine();
+                    if (get != null){
+                        str += get;
+                        str += "\n";
+                    }
                     if (endOfChat == 1) {
                         endOfChat = 0;
                         timer.cancel();

@@ -24,7 +24,7 @@ public class Main {
         }
         int counter = 0;
             try {
-                while (counter != 5) {
+                while (counter != 10) {
                     Socket socket = server.accept();
                     all.add(game.initial(socket));
                     game.beReady(socket);
@@ -42,6 +42,8 @@ public class Main {
                     day++;
                     System.out.println("Day number: " + day);
                     TimeUnit.SECONDS.sleep(4);
+                    game.info();
+                    TimeUnit.SECONDS.sleep(5);
                     game.sendToAll(all.size());
                     game.globalChat();
                     TimeUnit.SECONDS.sleep(4);
@@ -49,7 +51,7 @@ public class Main {
                     game.globalVote();
                     game.sendToAll(all.size());
                     game.night();
-                    game.mafiaChat();
+                    game.checkNight();
 
 
 

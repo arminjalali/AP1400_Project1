@@ -2,6 +2,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -121,6 +122,12 @@ public class GodFather {
             }
         }
     }
+    public void kill() throws InterruptedException, IOException {
+        Execute ex = new Execute(1);
+        System.out.println("Choose");
+        String str = ex.readLine();
+        new DataOutputStream(socket.getOutputStream()).writeUTF(Objects.requireNonNullElse(str, "100"));
+    }
     public void nightChat() throws InterruptedException, IOException {
         while (true) {
             String turn = in.readUTF();
@@ -132,13 +139,16 @@ public class GodFather {
                         endOfChat = 1;
                     }
                 };
-                System.out.println("Chat for kill someone!");
-                timer.schedule(timerTask , 20 * 1000);
+                System.out.println("Chat");
+                timer.schedule(timerTask , 10 * 1000);
                 Execute ex = new Execute(1);
                 String str = "";
                 while (true) {
-                    str += ex.readLine();
-                    str += "\n";
+                    String get = ex.readLine();
+                    if (get != null){
+                        str += get;
+                        str += "\n";
+                    }
                     if (endOfChat == 1) {
                         endOfChat = 0;
                         timer.cancel();

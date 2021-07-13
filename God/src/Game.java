@@ -8,15 +8,20 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class Game {
+    private Player lecterSave;
+    private Player psychologistSilence;
+    private boolean inquire = false;
+    private boolean armor = true;
     private int endOfChat = 0;
     private ArrayList <Player> all;
     private ArrayList <Player> mafia;
+    private ArrayList <Player> dead = new ArrayList<>();
     private Player mayor;
     private Player citizen;
     private Player simpleMafia;
     private Player drLecter;
     private Player godFather;
-    private Player hardDie;
+    private Player dieHard;
     private Player psychologist;
     private Player dr;
     private Player detective;
@@ -32,22 +37,40 @@ public class Game {
             if (player.getSubType().equals("Mayor")){
                 mayor = player;
             }
-            if (player.getSubType().equals("Dr")){
+            else if (player.getSubType().equals("Dr")){
                 dr = player;
             }
-            if (player.getSubType().equals("Mafia")){
+            else if (player.getSubType().equals("Mafia")){
                 simpleMafia = player;
             }
-            if (player.getSubType().equals("GodFather")){
+            else if (player.getSubType().equals("GodFather")){
                 godFather = player;
             }
-            if (player.getSubType().equals("DrLecter")){
+            else if (player.getSubType().equals("DrLecter")){
                 drLecter = player;
             }
-
+            else if (player.getSubType().equals("Detective")){
+                detective = player;
+            }
+            else if (player.getSubType().equals("Pro")){
+                pro = player;
+            }
+            else if (player.getSubType().equals("Psychologist")){
+                psychologist= player;
+            }
+            else if (player.getSubType().equals("DieHard")){
+                dieHard = player;
+            }
         }
     }
-
+    public void info(){
+        if (inquire == true){
+            inquire = false;
+            for (Player player : dead){
+                System.out.println("These are dead: \n" + player.getSubType());
+            }
+        }
+    }
     public Player initial(Socket socket) {
         DataInputStream in;
         try {
@@ -234,6 +257,7 @@ public class Game {
             new DataOutputStream(defendant.get(num).getSocket().getOutputStream()).writeUTF("Yes");
             ArrayList<Player> removed = new ArrayList<>();
             removed.add(defendant.get(num));
+            dead.add(defendant.get(num));
             specialChat(removed);
             TimeUnit.SECONDS.sleep(1);
             all.remove(defendant.get(num));
@@ -305,6 +329,7 @@ public class Game {
                     TimeUnit.SECONDS.sleep(1);
                     all.remove(MAction);
                     mafia.remove(removed.get(0));
+                    dead.remove(removed.get(0));
                     checkFinish();
                 }
                 TimeUnit.SECONDS.sleep(2);
@@ -322,7 +347,7 @@ public class Game {
             }
         };
         for (int i = 0 ; i < all.size() ; i++){
-            new Chat(all.get(i)).start();
+            new Chat(all.get(i) , psychologistSilence).start();
         }
         timer.schedule(timerTask, 10 * 1000);
         while (true) {
@@ -345,7 +370,7 @@ public class Game {
             }
         };
         for (int i = 0 ; i < defendant.size() ; i++){
-            new Chat(defendant.get(i)).start();
+            new Chat(defendant.get(i) , psychologistSilence).start();
         }
         timer.schedule(timerTask, 10 * 1000);
         while (true) {
@@ -368,21 +393,21 @@ public class Game {
             new DataOutputStream(dr.getSocket().getOutputStream()).writeUTF("You are Dr");
             TimeUnit.SECONDS.sleep(5);
 
-          /*  System.out.println("Detective wake up");
-            new DataOutputStream(Det.getSocket().getOutputStream()).writeUTF("You are Detective");
+            System.out.println("Detective wake up");
+            new DataOutputStream(detective.getSocket().getOutputStream()).writeUTF("You are Detective");
             TimeUnit.SECONDS.sleep(5);
 
             System.out.println("Pro wake up");
-            new DataOutputStream(Pro.getSocket().getOutputStream()).writeUTF("You are Pro");
+            new DataOutputStream(pro.getSocket().getOutputStream()).writeUTF("You are Pro");
             TimeUnit.SECONDS.sleep(5);
 
             System.out.println("Psychologist wake up");
-            new DataOutputStream(Psy.getSocket().getOutputStream()).writeUTF("You are Psychologist");
+            new DataOutputStream(psychologist.getSocket().getOutputStream()).writeUTF("You are Psychologist");
             TimeUnit.SECONDS.sleep(5);
 
-            System.out.println("Hard-die wake up");
-            new DataOutputStream(H.getSocket().getOutputStream()).writeUTF("You are Hard-die");
-            TimeUnit.SECONDS.sleep(5);*/
+            System.out.println("Die-Hard wake up");
+            new DataOutputStream(dieHard.getSocket().getOutputStream()).writeUTF("You are Hard-die");
+            TimeUnit.SECONDS.sleep(5);
 
         } catch (IOException e) {
             System.out.println("Error on connection to clients!");
@@ -423,7 +448,7 @@ public class Game {
             String str = new DataInputStream(mafia.get(i).getSocket().getInputStream()).readUTF();
             for (Player player : mafia){
                 if (!player.equals(mafia.get(i))) {
-                    new DataOutputStream(player.getSocket().getOutputStream()).writeUTF(str);
+                    new DataOutputStream(player.getSocket().getOutputStream()).writeUTF(mafia.get(i).getName() + " : " + str);
                 }
             }
         }
@@ -431,20 +456,121 @@ public class Game {
             new DataOutputStream(player.getSocket().getOutputStream()).writeUTF("0");
         }
     }
-    public void night() throws IOException {
-
-    /*    System.out.println("Dr wake up and save");
+    public void list(){
         for (int i = 0 ; i < all.size() ; i++){
-            System.out.println((i + 1) + " " + all.get(i).getName());
+            System.out.println("[" + (i+1) + "] " + all.get(i).getName());
         }
-        if (dr.getAlive()) {
+    }
+    public void night() throws IOException, InterruptedException {
+        mafiaChat();
+        System.out.println("Godfather kill");
+        list();
+        TimeUnit.SECONDS.sleep(3);
+        if (all.contains(godFather)) {
+            new DataOutputStream(godFather.getSocket().getOutputStream()).writeUTF("");
+            String strGod = new DataInputStream(godFather.getSocket().getInputStream()).readUTF();
+            if (strGod != null && Integer.parseInt(strGod) > 0 && Integer.parseInt(strGod) <= all.size() && all.get(Integer.parseInt(strGod) - 1).getType().equals("Citizen")) {
+                if (all.get(Integer.parseInt(strGod) - 1).equals(dieHard) && armor) {
+                    armor = false;
+                } else {
+                    all.get(Integer.parseInt(strGod) - 1).kill();
+                }
+            }
+        }
+            System.out.println("Dr Lecter save");
+            list();
+            TimeUnit.SECONDS.sleep(3);
+            if (all.contains(drLecter)) {
+                new DataOutputStream(drLecter.getSocket().getOutputStream()).writeUTF("");
+                String strLec = new DataInputStream(drLecter.getSocket().getInputStream()).readUTF();
+                if (strLec != null && Integer.parseInt(strLec) < 11 && Integer.parseInt(strLec) > 0 && all.get(Integer.parseInt(strLec) - 1).getType().equals("Mafia")) {
+                    lecterSave = all.get(Integer.parseInt(strLec) - 1);
+                }
+            }
+        System.out.println("Dr wake up and save");
+        list();
+        TimeUnit.SECONDS.sleep(3);
+        if (all.contains(dr)) {
+            new DataOutputStream(dr.getSocket().getOutputStream()).writeUTF("");
             String drChoose = new DataInputStream(dr.getSocket().getInputStream()).readUTF();
             int d = Integer.parseInt(drChoose);
             if (drChoose != null && d <= all.size() && d > 0) {
                 d = d-1;
                 all.get(d).save();
             }
-        }*/
+        }
+        System.out.println("Detective wake up and find");
+        list();
+        TimeUnit.SECONDS.sleep(3);
+        if (all.contains(detective)) {
+            new DataOutputStream(detective.getSocket().getOutputStream()).writeUTF("");
+            String choose = new DataInputStream(detective.getSocket().getInputStream()).readUTF();
+            int d = Integer.parseInt(choose);
+            if (choose != null && d <= all.size() && d > 0) {
+                d = d-1;
+                if (all.get(d).getType().equals("Citizen")){
+                    new DataOutputStream(detective.getSocket().getOutputStream()).writeUTF("No");
+                }
+                else if (all.get(d).getSubType().equals("GodFather")){
+                    new DataOutputStream(detective.getSocket().getOutputStream()).writeUTF("No");
+                }
+                else if (all.get(d).getType().equals("Mafia")){
+                    new DataOutputStream(detective.getSocket().getOutputStream()).writeUTF("Yes");
+                }
+            }
+        }
+        System.out.println("Pro wake up and kill");
+        list();
+        TimeUnit.SECONDS.sleep(3);
+        if (all.contains(pro)) {
+            new DataOutputStream(pro.getSocket().getOutputStream()).writeUTF("");
+            String choose = new DataInputStream(pro.getSocket().getInputStream()).readUTF();
+            int d = Integer.parseInt(choose);
+            if (choose != null && d <= all.size() && d > 0) {
+                d = d-1;
+                if (all.get(d).getType().equals("Citizen")){
+                    pro.kill();
+                }
+                else {
+                    if (!(all.get(d).equals(lecterSave))){
+                        all.get(d).kill();
+                    }
+                }
+            }
+        }
+        System.out.println("Psychologist wake up and silent");
+        list();
+        TimeUnit.SECONDS.sleep(3);
+        if (all.contains(psychologist)) {
+            new DataOutputStream(psychologist.getSocket().getOutputStream()).writeUTF("");
+            String choose = new DataInputStream(psychologist.getSocket().getInputStream()).readUTF();
+            int d = Integer.parseInt(choose);
+            if (choose != null && d <= all.size() && d > 0) {
+                d = d-1;
+                psychologistSilence = all.get(d);
+            }
+        }
+        System.out.println("DieHard wake up");
+        TimeUnit.SECONDS.sleep(3);
+        if (all.contains(dieHard)) {
+            new DataOutputStream(dieHard.getSocket().getOutputStream()).writeUTF("");
+            String str = new DataInputStream(dieHard.getSocket().getInputStream()).readUTF();
+            if (str.equals("1")){
+                inquire = true;
+            }
+        }
+    }
+    public void checkNight(){
+        for (int i = 0 ; i < all.size() ; i++){
+            Player player = all.get(i);
+            if (!player.getAlive()){
+                System.out.println(player.getName() + " removed");
+                all.remove(player);
+                mafia.remove(player);
+                dead.add(player);
+                checkFinish();
+            }
+        }
     }
     public ArrayList<Player> checkVotes(ArrayList <Integer> votes){
         ArrayList<Player> defendant = new ArrayList<>();

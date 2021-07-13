@@ -6,8 +6,8 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class HardDie {
-    private int endOfChat = 0;
+public class DieHard {
+    private  int endOfChat = 0;
     private DataInputStream in;
     private DataOutputStream out;
     private String name;
@@ -15,15 +15,17 @@ public class HardDie {
     private String type;
     private String subType;
     private Socket socket;
+    private int inquire;
 
-    public HardDie(Socket socket , String name , DataInputStream in , DataOutputStream out) {
+    public DieHard(Socket socket , String name , DataInputStream in , DataOutputStream out) {
         this.socket = socket;
         this.name = name;
         alive = true;
         type = "Citizen";
-        subType = "HardDie";
-        this.in = in;
+        subType = "DieHard";
         this.out = out;
+        this.in = in;
+        inquire = 2;
     }
 
     public void introduce() {
@@ -39,6 +41,10 @@ public class HardDie {
         return alive;
     }
 
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
     public String getName() {
         return name;
     }
@@ -51,7 +57,23 @@ public class HardDie {
         return subType;
     }
 
-
+    public void inquire() throws InterruptedException, IOException {
+        new DataInputStream(socket.getInputStream()).readUTF();
+        if (inquire > 0) {
+            System.out.println("send 1 to inquire");
+            Execute ex = new Execute(1);
+            String str = ex.readLine();
+            if (str != null && str.equals("1")) {
+                inquire--;
+                new DataOutputStream(socket.getOutputStream()).writeUTF("1");
+            } else {
+                new DataOutputStream(socket.getOutputStream()).writeUTF("0");
+            }
+        }
+        else {
+            new DataOutputStream(socket.getOutputStream()).writeUTF("0");
+        }
+    }
     public void chat() {
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
@@ -62,7 +84,7 @@ public class HardDie {
         };
         try {
             System.out.println("You can chat");
-            timer.schedule(timerTask , 10 * 1000);
+            timer.schedule(timerTask ,10 * 1000);
             Execute ex = new Execute(1);
             while (true) {
                 String str = ex.readLine();
@@ -110,8 +132,8 @@ public class HardDie {
                     alive = false;
                 }
             }
-            else{
-                if (!(in.readUTF().equals("1"))) {
+            else {
+                if (!(in.readUTF().equals("Mayor"))) {
                     specialVote(sizeOfDefender);
                 }
             }
@@ -144,6 +166,7 @@ public class HardDie {
         return Integer.parseInt(in.readUTF());
     }
     public boolean doIDefend() throws IOException {
-        return (in.readUTF().equals("1"));
+        return in.readUTF().equals("1");
     }
 }
+

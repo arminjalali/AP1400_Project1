@@ -2,6 +2,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,7 +56,13 @@ public class Dr {
         return subType;
     }
 
-
+    public void save() throws InterruptedException, IOException {
+        new DataInputStream(socket.getInputStream()).readUTF();
+        Execute ex = new Execute(1);
+        System.out.println("Choose");
+        String str = ex.readLine();
+        new DataOutputStream(socket.getOutputStream()).writeUTF(Objects.requireNonNullElse(str, "100"));
+    }
     public void chat() {
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {

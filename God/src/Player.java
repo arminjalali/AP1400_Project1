@@ -36,4 +36,7 @@ public class Player {
     public void save() {
         alive = true;
     }
+    public void kill(){
+        alive = false;
+    }
 }

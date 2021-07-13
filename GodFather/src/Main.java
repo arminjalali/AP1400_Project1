@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
         DataOutputStream out;
         DataInputStream in;
         Scanner get = new Scanner(System.in);
@@ -36,18 +36,24 @@ public class Main {
         godFather.chat();
         godFather.introduce();
         while (true) {
-            if (!godFather.getAlive()) {
-                System.out.println("You died!!!");
-                System.exit(1);
+            try {
+                if (!godFather.getAlive()) {
+                    System.out.println("You died!!!");
+                    System.exit(1);
+                }
+                TimeUnit.SECONDS.sleep(2);
+                new DataInputStream(socket.getInputStream()).readUTF();
+                godFather.chat();
+                String str = new DataInputStream(socket.getInputStream()).readUTF();
+                TimeUnit.SECONDS.sleep(4);
+                godFather.vote(Integer.parseInt(str));
+                new DataInputStream(socket.getInputStream()).readUTF();
+                godFather.nightChat();
+                new DataInputStream(socket.getInputStream()).readUTF();
+                godFather.kill();
+            }catch (IOException e) {
+                System.exit(0);
             }
-            TimeUnit.SECONDS.sleep(2);
-            new DataInputStream(socket.getInputStream()).readUTF();
-            godFather.chat();
-            String str = new DataInputStream(socket.getInputStream()).readUTF();
-            TimeUnit.SECONDS.sleep(4);
-            godFather.vote(Integer.parseInt(str));
-            new DataInputStream(socket.getInputStream()).readUTF();
-            godFather.nightChat();
         }
     }
 }
